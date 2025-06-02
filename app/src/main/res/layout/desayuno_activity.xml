@@ -1,0 +1,62 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DESAYUNO"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        android:gravity="center"/>
+
+    <EditText
+        android:id="@+id/txtResultadoDesayuno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
+        android:hint="Escanear o escribir RUT"
+        android:inputType="text"/>
+
+    <TextView
+        android:id="@+id/txtNombreAlumnoDesayuno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Los datos apareceran acá"
+        android:textSize="16sp"
+        android:textColor="@color/white"
+        android:padding="8dp"
+        android:textStyle="bold" />
+    <Button
+        android:id="@+id/btnEscanearDesayuno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Escanear RUT" />
+
+    <Button
+        android:id="@+id/btnRegistrarAsistenciaDesayuno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Registrar Asistencia"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnRegresarDesayuno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Regresar" />
+
+    <ListView
+        android:id="@+id/listViewAlumnosDesayuno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

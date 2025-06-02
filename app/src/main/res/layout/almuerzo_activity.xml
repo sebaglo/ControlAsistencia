@@ -1,0 +1,71 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212"
+    tools:ignore="ExtraText">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ALMUERZO"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textSize="40sp"/>
+
+    <!-- EditText para escanear el RUT -->
+
+    <EditText
+        android:id="@+id/txtResultadoAlmuerzo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/darker_gray"
+        android:clickable="false"
+        android:focusable="false"
+        android:hint="Escanear o escribir RUT"
+        android:inputType="text"
+        android:padding="8dp"
+        android:textColor="@android:color/white" />
+
+    <TextView
+        android:id="@+id/txtNombreAlumnoAlmuerzo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Los datos apareceran acá"
+        android:textSize="16sp"
+        android:padding="8dp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"/>
+
+    <Button
+        android:id="@+id/btnEscanearAlmuerzo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Escanear RUT"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/btnEscanearSalida"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Escanear Salida" />
+
+
+    <Button
+        android:id="@+id/btnRegresarAlmuerzo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Regresar"
+        android:layout_marginTop="8dp" />
+
+    <ListView
+        android:id="@+id/listViewAlumnos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
