@@ -32,16 +32,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnAlmuerzo.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, desayuno_activity.class);
+            Intent intent = new Intent(MainActivity.this, Desayuno.class);
             startActivity(intent);
         });
 
-        btnSalir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-                System.exit(0);
-            }
+        btnSalir.setOnClickListener(v ->{
+            finish();
         });
     }
 }

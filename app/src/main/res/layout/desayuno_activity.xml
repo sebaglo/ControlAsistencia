@@ -34,6 +34,7 @@
         android:textColor="@color/white"
         android:padding="8dp"
         android:textStyle="bold" />
+
     <Button
         android:id="@+id/btnEscanearDesayuno"
         android:layout_width="match_parent"

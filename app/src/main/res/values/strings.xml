@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">asistencia_comida</string>
+    <string-array name="acciones_asistencia">
+        <item>Entrada</item>
+        <item>Salida</item>
+    </string-array>
 </resources>

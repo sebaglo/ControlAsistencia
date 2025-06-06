@@ -37,7 +37,7 @@
         <activity android:name=".Almuerzo_activity"
             android:exported="true"/>
 
-        <activity android:name=".desayuno_activity"
+        <activity android:name=".Desayuno"
             android:exported="true"/>
     </application>
 
