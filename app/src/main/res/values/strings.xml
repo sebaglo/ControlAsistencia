@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">asistencia_comida</string>
+    <string name="app_name">asistencia_colacion</string>
     <string-array name="acciones_asistencia">
         <item>Entrada</item>
         <item>Salida</item>

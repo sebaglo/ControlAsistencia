@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
+    android:gravity="center"
     android:background="#121212"
     tools:ignore="ExtraText">
 
@@ -18,59 +19,19 @@
         android:gravity="center"
         android:textSize="40sp"/>
 
-    <EditText
-        android:id="@+id/txtResultadoAlmuerzo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/darker_gray"
-        android:clickable="false"
-        android:focusable="false"
-        android:hint="Último RUT Escaneado"
-        android:inputType="text"
-        android:padding="8dp"
-        android:textColor="@android:color/white"
-        android:layout_marginTop="16dp" />
-
-    <TextView
-        android:id="@+id/txtNombreAlumnoAlmuerzo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Nombre del alumno aparecerá aquí"
-        android:textSize="16sp"
-        android:padding="8dp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"/>
 
     <Button
-        android:id="@+id/btnEscanearAlmuerzo"
+        android:id="@+id/btnEscanearDesayuno"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="ESCANEAR ENTRADA"
         android:layout_marginTop="16dp" />
 
     <Button
-        android:id="@+id/btnRegresarAlmuerzo"
+        android:id="@+id/btnRegresarDesayuno"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="REGRESAR"
-        android:layout_marginTop="8dp" />
-
-    <EditText
-        android:id="@+id/etBuscarRut"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Buscar alumno por RUT o Nombre"
-        android:inputType="text"
-        android:padding="8dp"
-        android:textColor="@android:color/white"
-        android:background="@android:color/darker_gray"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"/>
-
-    <ListView
-        android:id="@+id/listViewAlumnos"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_marginTop="8dp" />
 
 </LinearLayout>

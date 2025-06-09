@@ -3,14 +3,8 @@ package com.example.asistencia_comida;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -22,7 +16,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
+import com.google.zxing.integration.android.IntentResult; // Correct
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,27 +28,18 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 public class Almuerzo_activity extends AppCompatActivity {
 
     private Button btnEscanear, btnRegresar;
-    private EditText txtResultado, etBuscarRut;
-    private TextView txtNombreAlumno;
-    private ListView listViewAlumnos;
-    private ArrayAdapter<AlumnoAsistencia> alumnosAdapter;
     private ArrayList<AlumnoAsistencia> listaAlumnosAsistencia;
-    private ArrayList<AlumnoAsistencia> listaAlumnosFiltrada;
+
 
     private RequestQueue requestQueue;
 
-    // ¡IMPORTANTE! Ajusta esta IP según tu entorno:
-    // - Para emulador y PHP en tu localhost: "http://10.0.2.2/conexion.php"
-    // - Para dispositivo físico y PHP en tu red local: La IP real de tu PC en la red.
-    private static final String API_URL = "http://172.100.8.99/conexion.php"; // <--- ¡Asegúrate de que esta URL sea correcta!
-    private static final int ID_TSERVICIO = 2; // Colación/Almuerzo
+    private static final String API_URL = "http://172.100.8.99/AppColación/conexion.php";
+    private static final int ID_TSERVICIO = 1; // Colación/Almuerzo
     private boolean registroEnProceso = false; // Bandera para evitar múltiples escaneos simultáneos
-
 
     public static class AlumnoAsistencia {
         private String rut;
@@ -78,13 +63,12 @@ public class Almuerzo_activity extends AppCompatActivity {
         public String getHoraSalida() { return horaSalida; }
         public String getNombreCurso() { return nombreCurso; }
 
-        // Setters (útiles para actualizar el estado de un alumno en la lista)
+        // Setters (corregido el error tipográfico "voidHoraEntrada" a "setHoraEntrada")
         public void setRut(String rut) { this.rut = rut; }
         public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
-        public void setHoraEntrada(String horaEntrada) { this.horaEntrada = horaEntrada; }
+        public void setHoraEntrada(String horaEntrada) { this.horaEntrada = horaEntrada; } // Corrected method name
         public void setHoraSalida(String horaSalida) { this.horaSalida = horaSalida; }
         public void setNombreCurso(String nombreCurso) { this.nombreCurso = nombreCurso; }
-
 
         public boolean tieneSalidaRegistrada() {
             return horaSalida != null && !horaSalida.isEmpty() && !horaSalida.equalsIgnoreCase("null");
@@ -94,13 +78,14 @@ public class Almuerzo_activity extends AppCompatActivity {
             return horaEntrada != null && !horaEntrada.isEmpty() && !horaEntrada.equalsIgnoreCase("null");
         }
 
+        // toString() se mantiene por si se usa para logs o debug.
         @Override
         public String toString() {
             String entradaDisplay = (tieneEntradaRegistrada()) ? horaEntrada : "N/A";
             String salidaDisplay = (tieneSalidaRegistrada()) ? horaSalida : "N/A";
             String cursoDisplay = (nombreCurso != null && !nombreCurso.isEmpty() && !nombreCurso.equalsIgnoreCase("null") && !nombreCurso.equalsIgnoreCase("N/A")) ? " - " + nombreCurso : "";
 
-            String estado = " (Pendiente)"; // Estado por defecto si no hay entrada
+            String estado = " (Pendiente)";
             if (tieneEntradaRegistrada()) {
                 estado = " (ENTRADA: " + entradaDisplay;
                 if (tieneSalidaRegistrada()) {
@@ -108,10 +93,9 @@ public class Almuerzo_activity extends AppCompatActivity {
                 } else {
                     estado += " - Salida Pendiente)";
                 }
-            } else if (tieneSalidaRegistrada()) { // Solo si tiene salida pero no entrada (caso raro, pero manejado)
+            } else if (tieneSalidaRegistrada()) {
                 estado = " (SALIDA: " + salidaDisplay + ") - SIN ENTRADA";
             }
-
             return nombreCompleto + " - " + rut + cursoDisplay + estado;
         }
     }
@@ -120,21 +104,15 @@ public class Almuerzo_activity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.almuerzo_activity);
+        setContentView(R.layout.desayuno_activity);
 
         requestQueue = Volley.newRequestQueue(this);
 
-        listViewAlumnos = findViewById(R.id.listViewAlumnos);
-        etBuscarRut = findViewById(R.id.etBuscarRut);
         btnEscanear = findViewById(R.id.btnEscanearAlmuerzo);
         btnRegresar = findViewById(R.id.btnRegresarAlmuerzo);
-        txtResultado = findViewById(R.id.txtResultadoAlmuerzo);
-        txtNombreAlumno = findViewById(R.id.txtNombreAlumnoAlmuerzo); // Asegúrate que este ID sea correcto, lo cambie por uno más genérico
 
+        // Se mantiene la inicialización de listaAlumnosAsistencia para que cargarAlumnosDelDia la use
         listaAlumnosAsistencia = new ArrayList<>();
-        listaAlumnosFiltrada = new ArrayList<>();
-        alumnosAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, listaAlumnosFiltrada);
-        listViewAlumnos.setAdapter(alumnosAdapter);
 
         btnRegresar.setOnClickListener(v -> onBackPressed());
 
@@ -147,27 +125,7 @@ public class Almuerzo_activity extends AppCompatActivity {
             iniciarEscaneo("Escanea el RUT del alumno");
         });
 
-        listViewAlumnos.setOnItemLongClickListener((parent, view, position, id) -> {
-            AlumnoAsistencia alumnoSeleccionado = listaAlumnosFiltrada.get(position);
-            mostrarDialogoAccionesAlumno(alumnoSeleccionado);
-            return true;
-        });
-
-        etBuscarRut.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filtrarAlumnos(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
+        // Mantenida: La carga inicial de alumnos del día
         cargarAlumnosDelDia();
     }
 
@@ -192,7 +150,6 @@ public class Almuerzo_activity extends AppCompatActivity {
                 limpiarCamposEscaneo();
             } else {
                 final String scannedCode = result.getContents().trim();
-                txtResultado.setText(scannedCode);
                 String rutNormalizado = scannedCode.replace(".", "").replace("-", "").toUpperCase(Locale.getDefault());
                 if (rutNormalizado.length() > 1 && rutNormalizado.endsWith("K")) {
                     rutNormalizado = rutNormalizado.substring(0, rutNormalizado.length() - 1) + "K";
@@ -208,13 +165,12 @@ public class Almuerzo_activity extends AppCompatActivity {
 
     /**
      * Obtiene solo los datos del alumno (nombre, curso) desde la API.
-     * Esta es la nueva función de "primer paso" en el flujo de escaneo.
      * @param rut El RUT del alumno a buscar.
      */
     private void obtenerDatosAlumno(final String rut) {
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
-                    Log.d("API_GET_ALUMNO_DATA", response); // Log de la respuesta completa
+                    Log.d("API_GET_ALUMNO_DATA", response);
                     try {
                         JSONObject json = new JSONObject(response);
                         boolean success = json.getBoolean("success");
@@ -223,44 +179,37 @@ public class Almuerzo_activity extends AppCompatActivity {
                             String nombreCompleto = json.optString("nombre_completo_alumno", "Nombre no disponible");
                             String nombreCurso = json.optString("nombre_curso", "Curso no disponible");
 
-                            txtNombreAlumno.setText(nombreCompleto); // Mostrar el nombre inmediatamente
-
-                            // SEGUNDO PASO: Si el alumno existe, ahora obtener su estado de asistencia
                             @SuppressLint("SimpleDateFormat") final String horaActual = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
                             @SuppressLint("SimpleDateFormat") final String fechaActual = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-                            // Pasar el nombre y curso obtenidos para que obtenerEstadoYDecidirAccion no tenga que volver a buscarlos
                             obtenerEstadoYDecidirAccion(rut, fechaActual, horaActual, nombreCompleto, nombreCurso);
 
                         } else {
                             String message = json.getString("message");
                             Toast.makeText(this, "Error al obtener datos del alumno: " + message, Toast.LENGTH_LONG).show();
-                            txtNombreAlumno.setText("Alumno no encontrado");
                             limpiarCamposEscaneo();
-                            registroEnProceso = false; // Desactiva la bandera en caso de error
+                            registroEnProceso = false;
                             showErrorDialog("Alumno no encontrado", message);
                         }
                     } catch (JSONException e) {
                         Log.e("JSON_PARSE_ERROR", "Error al procesar JSON obtener_alumno_data: " + response, e);
                         Toast.makeText(this, "Error al procesar respuesta del servidor para datos de alumno.", Toast.LENGTH_LONG).show();
-                        txtNombreAlumno.setText("Error en la respuesta del servidor");
                         limpiarCamposEscaneo();
-                        registroEnProceso = false; // Desactiva la bandera en caso de error
+                        registroEnProceso = false;
                         showErrorDialog("Error de JSON", "Respuesta del servidor inválida al obtener datos de alumno.");
                     }
                 },
                 error -> {
                     Log.e("VOLLEY_ERROR_GET_ALUMNO_DATA", "Error de red al obtener datos de alumno: " + error.toString(), error);
                     Toast.makeText(this, "Error de conexión al obtener datos de alumno. Verifica tu conexión.", Toast.LENGTH_LONG).show();
-                    txtNombreAlumno.setText("Error de conexión");
                     limpiarCamposEscaneo();
-                    registroEnProceso = false; // Desactiva la bandera en caso de error
+                    registroEnProceso = false;
                     showErrorDialog("Error de Conexión", "No se pudo conectar con el servidor para obtener datos de alumno.");
                 }) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("accion", "obtener_alumno_data"); // Nueva acción
+                params.put("accion", "obtener_alumno_data");
                 params.put("rut_alumno", rut);
                 return params;
             }
@@ -280,8 +229,8 @@ public class Almuerzo_activity extends AppCompatActivity {
     private void obtenerEstadoYDecidirAccion(String rut, String fechaActual, String horaActual, String nombreAlumno, String nombreCurso) {
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
-                    registroEnProceso = false; // Desactiva la bandera de proceso
-                    Log.d("API_RESPONSE_ESTADO", response); // Log de la respuesta completa
+                    registroEnProceso = false;
+                    Log.d("API_RESPONSE_ESTADO", response);
 
                     try {
                         JSONObject json = new JSONObject(response);
@@ -290,23 +239,25 @@ public class Almuerzo_activity extends AppCompatActivity {
 
                         String horaEntradaExistente = json.optString("hora_entrada", null);
                         String horaSalidaExistente = json.optString("hora_salida", null);
-                        // Usar el nombre_completo_alumno y nombre_curso pasados por parámetro, o desde la respuesta si viene
                         String finalNombreAlumno = json.optString("nombre_completo_alumno", nombreAlumno);
                         String finalNombreCurso = json.optString("nombre_curso", nombreCurso);
 
-                        // Crear o actualizar la instancia de AlumnoAsistencia
                         AlumnoAsistencia currentAlumno = new AlumnoAsistencia(rut, finalNombreAlumno, horaEntradaExistente, horaSalidaExistente, finalNombreCurso);
-                        actualizarAlumnoEnLista(currentAlumno); // Intenta actualizar o añadir a la lista principal
-                        filtrarAlumnos(etBuscarRut.getText().toString()); // Refresca la vista
+                        // No es necesario actualizar ni filtrar la lista, ya que no hay ListView visible.
+                        // La lista 'listaAlumnosAsistencia' se actualiza en cargarAlumnosDelDia()
+                        // y aquí solo obtenemos el estado del alumno escaneado para decidir la acción.
+
+                        // Si necesitas que el alumno recién escaneado se añada/actualice en la lista en memoria
+                        // (aunque no se muestre), la lógica de 'actualizarAlumnoEnLista' se podría adaptar y mantener.
+                        // Para este escenario, la he eliminado, asumiendo que la lista se recarga al inicio y no se actualiza
+                        // en tiempo real con cada escaneo si no hay una UI para ello.
+                        // Si se desea mantener la lista en memoria como un cache de los escaneados, se puede reintroducir.
 
                         if (success) {
-                            // PHP reporta éxito (normalmente, se encontró asistencia de entrada)
                             if (currentAlumno.tieneEntradaRegistrada() && !currentAlumno.tieneSalidaRegistrada()) {
-                                // Alumno con entrada pero sin salida -> Registrar salida
                                 Toast.makeText(this, "Registrando salida para " + currentAlumno.getNombreCompleto() + "...", Toast.LENGTH_LONG).show();
                                 registrarSalida(rut, horaActual);
                             } else if (currentAlumno.tieneEntradaRegistrada() && currentAlumno.tieneSalidaRegistrada()) {
-                                // Alumno con entrada y salida -> Asistencia completa
                                 Toast.makeText(this, "Asistencia de " + currentAlumno.getNombreCompleto() + " (" + rut + ") ya completa hoy.", Toast.LENGTH_LONG).show();
                                 limpiarCamposEscaneo();
                                 showRegistroDialog(currentAlumno.getNombreCompleto(), currentAlumno.getRut(), fechaActual, currentAlumno.getHoraEntrada(), currentAlumno.getHoraSalida(), currentAlumno.getNombreCurso());
@@ -315,18 +266,14 @@ public class Almuerzo_activity extends AppCompatActivity {
                                 limpiarCamposEscaneo();
                             }
                         } else {
-                            // Caso success: false, verificar el mensaje para decidir la acción
                             if (message.contains("Ya existe un registro de entrada para este alumno en esta fecha.")) {
-                                // PHP nos dice que ya hay entrada (y nos da las horas existentes)
                                 Toast.makeText(this, "Entrada ya registrada para " + currentAlumno.getNombreCompleto() + " (" + rut + "). Hora: " + currentAlumno.getHoraEntrada(), Toast.LENGTH_LONG).show();
                                 limpiarCamposEscaneo();
                                 showRegistroDialog(currentAlumno.getNombreCompleto(), currentAlumno.getRut(), fechaActual, currentAlumno.getHoraEntrada(), currentAlumno.getHoraSalida(), currentAlumno.getNombreCurso());
                             } else if (message.contains("Alumno encontrado, pero sin asistencia para hoy.")) {
-                                // Alumno existe pero no tiene ninguna asistencia para hoy (ni entrada, ni salida) -> Registrar entrada
                                 Toast.makeText(this, "Registrando entrada para " + currentAlumno.getNombreCompleto() + "...", Toast.LENGTH_LONG).show();
                                 hacerRegistroAsistencia(rut, ID_TSERVICIO, horaActual);
                             } else if (message.contains("Error: El RUT del alumno no existe en la base de datos.")) {
-                                // Esto no debería ocurrir si obtenerDatosAlumno fue exitoso, pero se mantiene como fallback
                                 Toast.makeText(this, "Error: " + message, Toast.LENGTH_LONG).show();
                                 limpiarCamposEscaneo();
                                 showErrorDialog("Alumno no encontrado (2)", message);
@@ -344,7 +291,7 @@ public class Almuerzo_activity extends AppCompatActivity {
                     }
                 },
                 error -> {
-                    registroEnProceso = false; // Desactiva la bandera de proceso
+                    registroEnProceso = false;
                     Log.e("VOLLEY_ERROR_ESTADO", "Error de red al obtener estado: " + error.toString(), error);
                     Toast.makeText(Almuerzo_activity.this, "Error de red al obtener estado. Verifica tu conexión.", Toast.LENGTH_SHORT).show();
                     limpiarCamposEscaneo();
@@ -353,7 +300,7 @@ public class Almuerzo_activity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
-                params.put("accion", "obtener_asistencia"); // Acción para obtener el estado de asistencia
+                params.put("accion", "obtener_asistencia");
                 params.put("rut_alumno", rut);
                 params.put("fecha_servicio", fechaActual);
                 params.put("tipo_servicio", String.valueOf(ID_TSERVICIO));
@@ -373,24 +320,23 @@ public class Almuerzo_activity extends AppCompatActivity {
 
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
-                    registroEnProceso = false; // Desactiva la bandera
-                    Log.d("API_RESPONSE_SALIDA", response); // Log de la respuesta completa
+                    registroEnProceso = false;
+                    Log.d("API_RESPONSE_SALIDA", response);
                     try {
                         JSONObject json = new JSONObject(response);
                         boolean success = json.getBoolean("success");
                         String mensaje = json.getString("message");
 
-                        // Extraer los datos de asistencia confirmados
                         String horaEntradaConfirmada = json.optString("hora_entrada", null);
                         String horaSalidaConfirmada = json.optString("hora_salida", horaSalida);
-                        String nombreCompleto = json.optString("nombre_completo_alumno", txtNombreAlumno.getText().toString());
+                        String nombreCompleto = json.optString("nombre_completo_alumno", "Alumno");
                         String nombreCurso = json.optString("nombre_curso", "N/A");
 
                         if (success) {
                             Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
-                            AlumnoAsistencia updatedAlumno = new AlumnoAsistencia(rut, nombreCompleto, horaEntradaConfirmada, horaSalidaConfirmada, nombreCurso);
-                            actualizarAlumnoEnLista(updatedAlumno);
-                            filtrarAlumnos(etBuscarRut.getText().toString());
+                            // Aquí podrías actualizar el objeto AlumnoAsistencia en listaAlumnosAsistencia
+                            // si deseas mantener un estado interno de los alumnos del día, aunque no se muestre.
+                            // Por ahora, no hay UI para esto.
                             showRegistroDialog(nombreCompleto, rut, fechaActual, horaEntradaConfirmada, horaSalidaConfirmada, nombreCurso);
                             limpiarCamposEscaneo();
                         } else {
@@ -406,7 +352,7 @@ public class Almuerzo_activity extends AppCompatActivity {
                     }
                 },
                 error -> {
-                    registroEnProceso = false; // Desactiva la bandera
+                    registroEnProceso = false;
                     Log.e("VOLLEY_ERROR_SALIDA", "Error de red al registrar salida: " + error.toString(), error);
                     mostrarDialogo("Error", "Error en la conexión con el servidor al registrar salida. Verifica tu conexión.");
                     limpiarCamposEscaneo();
@@ -437,8 +383,8 @@ public class Almuerzo_activity extends AppCompatActivity {
 
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
-                    registroEnProceso = false; // Desactiva la bandera
-                    Log.d("API_RESPONSE_ENTRADA", response); // Log de la respuesta completa
+                    registroEnProceso = false;
+                    Log.d("API_RESPONSE_ENTRADA", response);
 
                     try {
                         JSONObject json = new JSONObject(response);
@@ -447,36 +393,31 @@ public class Almuerzo_activity extends AppCompatActivity {
 
                         String horaEntradaConfirmada = json.optString("hora_entrada", horaEntrada);
                         String horaSalidaConfirmada = json.optString("hora_salida", null);
-                        String nombreAlumnoResponse = json.optString("nombre_completo_alumno", txtNombreAlumno.getText().toString());
+                        String nombreAlumnoResponse = json.optString("nombre_completo_alumno", "Alumno");
                         String nombreCurso = json.optString("nombre_curso", "N/A");
-
 
                         if (success) {
                             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                            AlumnoAsistencia newAlumno = new AlumnoAsistencia(rut, nombreAlumnoResponse, horaEntradaConfirmada, horaSalidaConfirmada, nombreCurso);
-                            actualizarAlumnoEnLista(newAlumno);
-                            filtrarAlumnos(etBuscarRut.getText().toString());
+                            // Aquí podrías actualizar el objeto AlumnoAsistencia en listaAlumnosAsistencia
+                            // si deseas mantener un estado interno de los alumnos del día, aunque no se muestre.
                             showRegistroDialog(nombreAlumnoResponse, rut, fechaActual, horaEntradaConfirmada, horaSalidaConfirmada, nombreCurso);
                             limpiarCamposEscaneo();
 
                         } else {
-                            txtNombreAlumno.setText("Error al registrar asistencia");
                             Toast.makeText(this, "Error: " + message, Toast.LENGTH_LONG).show();
                             showErrorDialog("Error al registrar", message);
                             limpiarCamposEscaneo();
                         }
                     } catch (JSONException e) {
                         Log.e("JSON_PARSE_ERROR", "Error al procesar respuesta JSON al registrar entrada: " + response, e);
-                        txtNombreAlumno.setText("Error en la respuesta del servidor");
                         Toast.makeText(this, "Error al procesar datos del servidor", Toast.LENGTH_LONG).show();
                         limpiarCamposEscaneo();
                         showErrorDialog("Error de JSON", "Respuesta del servidor inválida al registrar entrada.");
                     }
                 },
                 error -> {
-                    registroEnProceso = false; // Desactiva la bandera
+                    registroEnProceso = false;
                     Log.e("VOLLEY_ERROR_ENTRADA", "Error de red al registrar entrada: " + error.toString(), error);
-                    txtNombreAlumno.setText("Error de conexión al registrar");
                     Toast.makeText(this, "No se pudo conectar con el servidor", Toast.LENGTH_LONG).show();
                     showErrorDialog("Error de conexión", "No se pudo conectar con el servidor. Verifica tu conexión.");
                     limpiarCamposEscaneo();
@@ -495,16 +436,6 @@ public class Almuerzo_activity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    /**
-     * Muestra un diálogo de éxito para el registro de entrada/salida.
-     * Unifica los diálogos de registro.
-     * @param nombreCompleto Nombre del alumno.
-     * @param rut RUT del alumno.
-     * @param fecha Fecha del registro.
-     * @param horaEntrada Hora de entrada.
-     * @param horaSalida Hora de salida.
-     * @param nombreCurso Nombre del curso del alumno.
-     */
     private void showRegistroDialog(String nombreCompleto, String rut, String fecha, String horaEntrada, String horaSalida, String nombreCurso) {
         String mensaje = "Alumno: " + (nombreCompleto != null ? nombreCompleto : "N/A") + "\n" +
                 "RUT: " + rut + "\n" +
@@ -520,11 +451,6 @@ public class Almuerzo_activity extends AppCompatActivity {
         builder.show();
     }
 
-    /**
-     * Muestra un diálogo general para mensajes informativos.
-     * @param titulo Título del diálogo.
-     * @param mensaje Mensaje a mostrar.
-     */
     private void mostrarDialogo(String titulo, String mensaje) {
         new AlertDialog.Builder(this)
                 .setTitle(titulo)
@@ -533,11 +459,6 @@ public class Almuerzo_activity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Muestra un diálogo de error.
-     * @param title Título del error.
-     * @param message Mensaje de error.
-     */
     private void showErrorDialog(String title, String message) {
         new AlertDialog.Builder(this)
                 .setTitle("Error: " + title)
@@ -546,107 +467,56 @@ public class Almuerzo_activity extends AppCompatActivity {
                 .show();
     }
 
-
-    // Diálogo de acciones al hacer long press en la lista (simplificado)
-    private void mostrarDialogoAccionesAlumno(AlumnoAsistencia alumno) {
-        String[] opciones = new String[]{"Ver Detalles"};
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Acciones para " + alumno.getNombreCompleto())
-                .setItems(opciones, (dialog, which) -> {
-                    if (opciones[which].equals("Ver Detalles")) {
-                        showRegistroDialog(alumno.getNombreCompleto(), alumno.getRut(),
-                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()), // Fecha actual
-                                alumno.getHoraEntrada(), alumno.getHoraSalida(), alumno.getNombreCurso());
-                    }
-                })
-                .setNegativeButton("Cancelar", null)
-                .show();
-    }
-
-    /**
-     * Actualiza o añade un alumno en la lista principal de asistencia.
-     * Esta función evita duplicados y mantiene la lista actualizada.
-     * @param updatedAlumno El objeto AlumnoAsistencia con los datos más recientes.
-     */
-    private void actualizarAlumnoEnLista(AlumnoAsistencia updatedAlumno) {
-        boolean encontrado = false;
-        for (int i = 0; i < listaAlumnosAsistencia.size(); i++) {
-            if (Objects.equals(listaAlumnosAsistencia.get(i).getRut(), updatedAlumno.getRut())) {
-                listaAlumnosAsistencia.set(i, updatedAlumno);
-                encontrado = true;
-                break;
-            }
-        }
-        if (!encontrado) {
-            listaAlumnosAsistencia.add(updatedAlumno);
-        }
-    }
-
-    private void filtrarAlumnos(String texto) {
-        listaAlumnosFiltrada.clear();
-        if (texto.isEmpty()) {
-            listaAlumnosFiltrada.addAll(listaAlumnosAsistencia);
-        } else {
-            String lowerCaseText = texto.toLowerCase(Locale.getDefault());
-            for (AlumnoAsistencia alumno : listaAlumnosAsistencia) {
-                if (alumno.getRut().toLowerCase(Locale.getDefault()).contains(lowerCaseText) ||
-                        alumno.getNombreCompleto().toLowerCase(Locale.getDefault()).contains(lowerCaseText)) {
-                    listaAlumnosFiltrada.add(alumno);
-                }
-            }
-        }
-        listaAlumnosFiltrada.sort((a1, a2) -> a1.getNombreCompleto().compareToIgnoreCase(a2.getNombreCompleto()));
-        alumnosAdapter.notifyDataSetChanged();
-    }
-
+    // El método limpiarCamposEscaneo() ya no necesita resetear ningún TextView/EditText.
     private void limpiarCamposEscaneo() {
-        txtResultado.setText("");
-        txtNombreAlumno.setText("Nombre del alumno aparecerá aquí");
+        // No hay campos de texto para limpiar en la UI.
+        // Solo como marcador de posición si en el futuro se quiere añadir algún feedback visual temporal.
     }
 
-    // --- Carga inicial de alumnos del día ---
-
+    // --- Carga inicial de alumnos del día (MANTENIDA) ---
+    // Este método sigue obteniendo los datos, aunque no los muestre en una ListView.
+    // La lista 'listaAlumnosAsistencia' se llena con estos datos.
     private void cargarAlumnosDelDia() {
         @SuppressLint("SimpleDateFormat") final String fechaActual = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
-                    Log.d("API_CARGAR_DIA", response);
+                    Log.d("API_CARGAR_ALUMNOS_DIA", response);
                     try {
                         JSONObject json = new JSONObject(response);
                         boolean success = json.getBoolean("success");
                         String message = json.getString("message");
 
                         if (success) {
-                            JSONArray alumnosArray = json.getJSONArray("alumnos");
-                            listaAlumnosAsistencia.clear();
-                            for (int i = 0; i < alumnosArray.length(); i++) {
-                                JSONObject alumnoJson = alumnosArray.getJSONObject(i);
-                                String rut = alumnoJson.optString("rut_alumno", "N/A");
-                                String nombre = alumnoJson.optString("nombre_completo_alumno", "N/A");
+                            JSONArray jsonAlumnos = json.getJSONArray("alumnos");
+                            listaAlumnosAsistencia.clear(); // Limpia la lista antes de llenarla
+                            for (int i = 0; i < jsonAlumnos.length(); i++) {
+                                JSONObject alumnoJson = jsonAlumnos.getJSONObject(i);
+                                String rut = alumnoJson.getString("rut_alumno");
+                                String nombreCompleto = alumnoJson.getString("nombre_completo_alumno");
                                 String horaEntrada = alumnoJson.optString("hora_entrada", null);
                                 String horaSalida = alumnoJson.optString("hora_salida", null);
                                 String nombreCurso = alumnoJson.optString("nombre_curso", "N/A");
 
-                                AlumnoAsistencia alumno = new AlumnoAsistencia(rut, nombre, horaEntrada, horaSalida, nombreCurso);
-                                listaAlumnosAsistencia.add(alumno);
+                                // Los alumnos se añaden a la lista interna 'listaAlumnosAsistencia'
+                                // pero no se mostrarán en la UI sin una ListView.
+                                listaAlumnosAsistencia.add(new AlumnoAsistencia(rut, nombreCompleto, horaEntrada, horaSalida, nombreCurso));
                             }
-                            filtrarAlumnos(etBuscarRut.getText().toString());
                             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                            // Aquí podrías agregar un Log para ver cuántos alumnos se cargaron
+                            Log.d("CARGA_ALUMNOS", "Alumnos cargados para el día: " + listaAlumnosAsistencia.size());
                         } else {
-                            listaAlumnosAsistencia.clear();
-                            filtrarAlumnos(etBuscarRut.getText().toString());
-                            Toast.makeText(this, "No se encontraron registros de asistencia para hoy: " + message, Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Error al cargar alumnos: " + message, Toast.LENGTH_LONG).show();
+                            listaAlumnosAsistencia.clear(); // Asegúrate de que la lista interna también se limpia
                         }
                     } catch (JSONException e) {
                         Log.e("JSON_PARSE_ERROR", "Error al procesar JSON cargarAlumnosDelDia: " + response, e);
-                        Toast.makeText(this, "Error al procesar datos de alumnos del día. Formato inválido.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Error al procesar respuesta del servidor al cargar alumnos.", Toast.LENGTH_LONG).show();
                     }
                 },
                 error -> {
-                    Log.e("VOLLEY_ERROR_CARGAR_DIA", "Error de conexión al cargar alumnos del día: " + error.toString(), error);
-                    Toast.makeText(this, "Error de conexión al cargar alumnos del día. Verifica tu conexión.", Toast.LENGTH_SHORT).show();
+                    Log.e("VOLLEY_ERROR_CARGAR_ALUMNOS_DIA", "Error de red al cargar alumnos del día: " + error.toString(), error);
+                    Toast.makeText(this, "Error de conexión al cargar alumnos del día. Verifica tu conexión.", Toast.LENGTH_LONG).show();
                 }) {
             @Override
             protected Map<String, String> getParams() {
