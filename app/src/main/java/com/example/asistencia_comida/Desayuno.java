@@ -116,16 +116,16 @@ public class Desayuno extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.almuerzo_activity);
+        setContentView(R.layout.desayuno_activity);
 
         requestQueue = Volley.newRequestQueue(this);
 
-        listViewAlumnos = findViewById(R.id.listViewAlumnos);
-        etBuscarRut = findViewById(R.id.etBuscarRut);
-        btnEscanear = findViewById(R.id.btnEscanearAlmuerzo);
-        btnRegresar = findViewById(R.id.btnRegresarAlmuerzo);
-        txtResultado = findViewById(R.id.txtResultadoAlmuerzo);
-        txtNombreAlumno = findViewById(R.id.txtNombreAlumnoAlmuerzo); // Asegúrate que este ID sea correcto, lo cambie por uno más genérico
+        listViewAlumnos = findViewById(R.id.listViewAlumnosDesayuno);
+        etBuscarRut = findViewById(R.id.etBuscarRutDesayuno);
+        btnEscanear = findViewById(R.id.btnEscanearDesayuno);
+        btnRegresar = findViewById(R.id.btnRegresarDesayuno);
+        txtResultado = findViewById(R.id.txtResultadoDesayuno);
+        txtNombreAlumno = findViewById(R.id.txtNombreAlumnoDesayuno); // Asegúrate que este ID sea correcto, lo cambie por uno más genérico
 
         listaAlumnosAsistencia = new ArrayList<>();
         listaAlumnosFiltrada = new ArrayList<>();
