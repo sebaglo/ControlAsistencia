@@ -39,7 +39,7 @@ public class Almuerzo_activity extends AppCompatActivity {
 
     private static final String API_URL = "http://172.100.8.99/AppColación/conexion.php";
     private static final int ID_TSERVICIO = 1; // Colación/Almuerzo
-    private boolean registroEnProceso = false; // Bandera para evitar múltiples escaneos simultáneos
+    private boolean registroEnProceso = false;
 
     public static class AlumnoAsistencia {
         private String rut;
@@ -129,6 +129,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         cargarAlumnosDelDia();
     }
 
+    //SE INICIA EL ESCANEO MEDIANTE LA CAMARA DEL USUARIO
     private void iniciarEscaneo(String promptMessage) {
         IntentIntegrator integrator = new IntentIntegrator(Almuerzo_activity.this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
@@ -163,10 +164,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Obtiene solo los datos del alumno (nombre, curso) desde la API.
-     * @param rut El RUT del alumno a buscar.
-     */
+    //CARGA LOS DATOS DE LOS ALUMNOS
     private void obtenerDatosAlumno(final String rut) {
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
@@ -217,15 +215,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-
-    /**
-     * Obtiene el estado de asistencia del alumno desde el servidor y decide si registrar entrada, salida o mostrar estado completo.
-     * @param rut El RUT del alumno.
-     * @param fechaActual La fecha actual (yyyy-MM-dd).
-     * @param horaActual La hora actual (HH:mm:ss).
-     * @param nombreAlumno El nombre del alumno obtenido del primer paso.
-     * @param nombreCurso El nombre del curso obtenido del primer paso.
-     */
+    //SE CREA LA DECISIÓN DE QUE SI SE REGISTRA LA ASISTENCIA O SE ELIMINA (SALIDA)
     private void obtenerEstadoYDecidirAccion(String rut, String fechaActual, String horaActual, String nombreAlumno, String nombreCurso) {
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
@@ -243,16 +233,6 @@ public class Almuerzo_activity extends AppCompatActivity {
                         String finalNombreCurso = json.optString("nombre_curso", nombreCurso);
 
                         AlumnoAsistencia currentAlumno = new AlumnoAsistencia(rut, finalNombreAlumno, horaEntradaExistente, horaSalidaExistente, finalNombreCurso);
-                        // No es necesario actualizar ni filtrar la lista, ya que no hay ListView visible.
-                        // La lista 'listaAlumnosAsistencia' se actualiza en cargarAlumnosDelDia()
-                        // y aquí solo obtenemos el estado del alumno escaneado para decidir la acción.
-
-                        // Si necesitas que el alumno recién escaneado se añada/actualice en la lista en memoria
-                        // (aunque no se muestre), la lógica de 'actualizarAlumnoEnLista' se podría adaptar y mantener.
-                        // Para este escenario, la he eliminado, asumiendo que la lista se recarga al inicio y no se actualiza
-                        // en tiempo real con cada escaneo si no hay una UI para ello.
-                        // Si se desea mantener la lista en memoria como un cache de los escaneados, se puede reintroducir.
-
                         if (success) {
                             if (currentAlumno.tieneEntradaRegistrada() && !currentAlumno.tieneSalidaRegistrada()) {
                                 Toast.makeText(this, "Registrando salida para " + currentAlumno.getNombreCompleto() + "...", Toast.LENGTH_LONG).show();
@@ -310,11 +290,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    /**
-     * Registra la hora de salida de un alumno.
-     * @param rut El RUT del alumno.
-     * @param horaSalida La hora actual de salida.
-     */
+    //SE REGISTRA LA SALIDA EN LA BASE DE DATOS.
     private void registrarSalida(final String rut, final String horaSalida) {
         @SuppressLint("SimpleDateFormat") final String fechaActual = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
@@ -334,9 +310,6 @@ public class Almuerzo_activity extends AppCompatActivity {
 
                         if (success) {
                             Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
-                            // Aquí podrías actualizar el objeto AlumnoAsistencia en listaAlumnosAsistencia
-                            // si deseas mantener un estado interno de los alumnos del día, aunque no se muestre.
-                            // Por ahora, no hay UI para esto.
                             showRegistroDialog(nombreCompleto, rut, fechaActual, horaEntradaConfirmada, horaSalidaConfirmada, nombreCurso);
                             limpiarCamposEscaneo();
                         } else {
@@ -372,12 +345,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
-    /**
-     * Realiza el registro de entrada de asistencia para un alumno.
-     * @param rut El RUT del alumno.
-     * @param idTServicio El ID del tipo de servicio (ej. 2 para almuerzo).
-     * @param horaEntrada La hora actual de entrada.
-     */
+    //SE REALIZA LA INSERSION DE LOS DATOS EN LA TABLA ASISTENCIA
     private void hacerRegistroAsistencia(final String rut, final int idTServicio, final String horaEntrada) {
         @SuppressLint("SimpleDateFormat") final String fechaActual = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
@@ -398,8 +366,6 @@ public class Almuerzo_activity extends AppCompatActivity {
 
                         if (success) {
                             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                            // Aquí podrías actualizar el objeto AlumnoAsistencia en listaAlumnosAsistencia
-                            // si deseas mantener un estado interno de los alumnos del día, aunque no se muestre.
                             showRegistroDialog(nombreAlumnoResponse, rut, fechaActual, horaEntradaConfirmada, horaSalidaConfirmada, nombreCurso);
                             limpiarCamposEscaneo();
 
@@ -436,6 +402,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+    //MUESTRA EL DIALOGO CON LOS DATOS DE LOS ALUMNOS.
     private void showRegistroDialog(String nombreCompleto, String rut, String fecha, String horaEntrada, String horaSalida, String nombreCurso) {
         String mensaje = "Alumno: " + (nombreCompleto != null ? nombreCompleto : "N/A") + "\n" +
                 "RUT: " + rut + "\n" +
@@ -459,6 +426,7 @@ public class Almuerzo_activity extends AppCompatActivity {
                 .show();
     }
 
+    //EN CASO DE ALGUN ERROR MOSTRARA ESTE DIALOGO.
     private void showErrorDialog(String title, String message) {
         new AlertDialog.Builder(this)
                 .setTitle("Error: " + title)
@@ -469,13 +437,9 @@ public class Almuerzo_activity extends AppCompatActivity {
 
     // El método limpiarCamposEscaneo() ya no necesita resetear ningún TextView/EditText.
     private void limpiarCamposEscaneo() {
-        // No hay campos de texto para limpiar en la UI.
-        // Solo como marcador de posición si en el futuro se quiere añadir algún feedback visual temporal.
     }
 
     // --- Carga inicial de alumnos del día (MANTENIDA) ---
-    // Este método sigue obteniendo los datos, aunque no los muestre en una ListView.
-    // La lista 'listaAlumnosAsistencia' se llena con estos datos.
     private void cargarAlumnosDelDia() {
         @SuppressLint("SimpleDateFormat") final String fechaActual = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
