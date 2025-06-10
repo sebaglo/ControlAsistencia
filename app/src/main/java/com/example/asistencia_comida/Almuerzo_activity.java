@@ -37,8 +37,8 @@ public class Almuerzo_activity extends AppCompatActivity {
 
     private RequestQueue requestQueue;
 
-    private static final String API_URL = "http://172.100.8.99/AppColación/conexion.php";
-    private static final int ID_TSERVICIO = 1; // Colación/Almuerzo
+    private static final String API_URL = "http://172.100.8.99/AppColación/conexion.php"; //CONEXIÓN DESDE LA BASE DE DATOS.
+    private static final int ID_TSERVICIO = 1; // ID TIPO DE SERVICIO (ALMUERZO)
     private boolean registroEnProceso = false;
 
     public static class AlumnoAsistencia {
@@ -129,7 +129,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         cargarAlumnosDelDia();
     }
 
-    //SE INICIA EL ESCANEO MEDIANTE LA CAMARA DEL USUARIO
+    //INICIO DE LA CAMARA MEDIANTE ESACNEO DE BARRA.
     private void iniciarEscaneo(String promptMessage) {
         IntentIntegrator integrator = new IntentIntegrator(Almuerzo_activity.this);
         integrator.setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES);
@@ -164,7 +164,7 @@ public class Almuerzo_activity extends AppCompatActivity {
         }
     }
 
-    //CARGA LOS DATOS DE LOS ALUMNOS
+    //CARGAR DATOS DE LOS ALUMNOS DESDE LA BASE DE DATOS.
     private void obtenerDatosAlumno(final String rut) {
         StringRequest request = new StringRequest(Request.Method.POST, API_URL,
                 response -> {
